@@ -5,8 +5,7 @@ from django.core.validators import MinLengthValidator, MaxLengthValidator
 
 class Character(models.Model):
     name = models.CharField(max_length=255, verbose_name='Name')
-    time_create = models.DateTimeField(
-        auto_now_add=True, verbose_name='Time Create')
+    time_create = models.DateTimeField(auto_now_add=True, verbose_name='Time Create')
     created_by = models.ForeignKey(get_user_model(),
                                    on_delete=models.SET_NULL,
                                    default=None, null=True, related_name='chars')
