@@ -1,3 +1,4 @@
+from django.forms import ValidationError
 from django.shortcuts import render
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
@@ -31,18 +32,15 @@ class UserCharactersView(generics.ListAPIView):
         return Character.objects.filter(created_by=self.request.user)
 
 
-@api_view(['POST'])
-def add_character(request):
-    character = CharacterSerializer(data=request.data)
+class AddCharacterView(generics.CreateAPIView):
+    queryset = Character.objects.all()
+    serializer_class = CharacterSerializer
 
-    if Character.objects.filter(**request.data).exists():
-        raise serializers.ValidationError('This character already exists')
-
-    if character.is_valid():
-        character.save()
-        return Response(character.data)
-    else:
-        return Response(status=status.HTTP_404_NOT_FOUND)
+    def perform_create(self, serializer: CharacterSerializer):
+        print('DATA: ', self.request.data)
+        if Character.objects.filter(name=self.request.data['name'][0], created_by=self.request.data['created_by'][0]).exists():
+            raise ValidationError(f'The Character already exists!')
+        serializer.save()
 
 
 @api_view(['POST'])
@@ -57,8 +55,15 @@ def update_character(request, pk):
         return Response(status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['DELETE'])
-def delete_character(request, pk):
-    character = get_object_or_404(Character, pk=pk)
-    character.delete()
-    return Response(status=status.HTTP_202_ACCEPTED)
+class DestroyCharacterView(generics.DestroyAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Character.objects.all()
+    serializer_class = CharacterSerializer
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        self.perform_destroy(instance)
+        return Response(
+            {"detail": f"Character '{instance.name}' has been deleted."},
+            status=status.HTTP_204_NO_CONTENT
+        )

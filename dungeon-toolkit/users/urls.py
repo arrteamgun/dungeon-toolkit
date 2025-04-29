@@ -20,10 +20,16 @@ from django.urls import path, reverse_lazy
 from . import views
 from django.contrib.auth.views import LogoutView, PasswordChangeView, PasswordResetConfirmView, PasswordResetCompleteView, PasswordChangeDoneView, PasswordResetDoneView, PasswordResetView
 from .views import AuthCheckView, CurrentUserView
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
 
 app_name = 'users'
 
 urlpatterns = [
     path('', AuthCheckView.as_view(), name='auth-check'),
     path('current', CurrentUserView.as_view(), name='get-current-user'),
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]
