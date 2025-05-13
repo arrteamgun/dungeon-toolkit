@@ -43,6 +43,24 @@ class AddCharacterView(generics.CreateAPIView):
         serializer.save()
 
 
+class UpdateCharacterView(generics.UpdateAPIView):
+    queryset = Character.objects.all()
+    serializer_class = CharacterSerializer
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Character updated successfully", "character": serializer.data})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 @api_view(['POST'])
 def update_character(request, pk):
     character = Character.objects.get(pk=pk)
